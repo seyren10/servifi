@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { categoryCreateSchema } from "../validators/category.validator";
 import categoryModel from "../models/category.model";
-import { ZodError, ZodIssue } from "zod";
+import { ZodError } from "zod";
 import { ValidationError } from "../utils/AppError";
 
 export async function getCategories(
@@ -13,6 +13,26 @@ export async function getCategories(
     const categories = await categoryModel.find().lean();
 
     res.json(categories);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getCategory(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const { id } = req.params;
+    const { populates } = req.query as { populates: string };
+
+    const category = await categoryModel.findById(id).populate({
+      path: populates,
+      strictPopulate: false,
+    });
+
+    res.json(category?.toJSON({ virtuals: true }));
   } catch (error) {
     next(error);
   }
