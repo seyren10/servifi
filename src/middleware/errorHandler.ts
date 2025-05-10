@@ -2,10 +2,12 @@ import { NextFunction, Request, Response } from "express";
 import logger from "../config/winston";
 import {
   AppError,
+  BadTokenError,
   MongooseValidationError,
   NotFoundError,
 } from "../utils/AppError";
-import { Error,  } from "mongoose";
+import { Error } from "mongoose";
+import { JsonWebTokenError } from "jsonwebtoken";
 
 export function errorHander(
   err: Error,
@@ -16,7 +18,7 @@ export function errorHander(
   try {
     let error = err;
     logger.debug(error);
-    logger.debug(error.stack)
+    logger.debug(error.stack);
 
     if (error instanceof Error.CastError) {
       error = new NotFoundError("Resource not found");
@@ -24,6 +26,10 @@ export function errorHander(
 
     if (error instanceof Error.ValidationError) {
       error = new MongooseValidationError(error);
+    }
+
+    if (error instanceof JsonWebTokenError) {
+      error = new BadTokenError();
     }
 
     if (error instanceof AppError) {

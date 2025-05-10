@@ -1,5 +1,8 @@
-import express, { Request, Response } from "express";
 import morgan from "morgan";
+import express, { Request, Response } from "express";
+import cors from "cors";
+
+import config from "./config/dotenv";
 import { errorHander } from "./middleware/errorHandler";
 import categoryRouter from "./routes/category.route";
 import productRouter from "./routes/product.route";
@@ -7,6 +10,12 @@ import tableRouter from "./routes/table.route";
 
 const app = express();
 
+app.use(
+  cors({
+    origin: config.frontendUrl!,
+    credentials: true,
+  })
+);
 app.set("query parser", "extended");
 app.use(morgan("common"));
 app.use(express.json());

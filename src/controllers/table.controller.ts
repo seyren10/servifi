@@ -1,10 +1,16 @@
-import { NextFunction, Request, Response } from "express";
 import Table from "../models/table.model";
+import jwt from "jsonwebtoken";
+import config from "../config/dotenv";
+import logger from "../config/winston";
+
+import { NextFunction, Request, Response } from "express";
 import {
   createTableSchema,
   updateTableSchema,
 } from "../validators/table.validator";
-import { ValidationError } from "../utils/AppError";
+import { BadRequestError, ValidationError } from "../utils/AppError";
+import { ClientRole } from "../enums/roles";
+import { TableStatus } from "../enums/table";
 
 export async function getTables(
   req: Request,
@@ -73,6 +79,48 @@ export async function deleteTable(
     await Table.findByIdAndDelete(id);
 
     res.status(204).json();
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function generateSession(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    if (!config.jwtSecret) {
+      logger.error(
+        "JWT_SECRET is not set, please configure it in your .env file"
+      );
+      process.exit(1);
+    }
+
+    const { id } = req.params;
+    const table = await Table.findById(id);
+
+    if (table?.status !== TableStatus.AVAILABLE)
+      throw new BadRequestError("Table already occupied");
+
+    table.status = TableStatus.RESERVED;
+    await table.save();
+
+    const tableToken = jwt.sign(
+      {
+        type: ClientRole.CUSTOMER,
+        id: table?._id,
+      },
+      config.jwtSecret,
+      {
+        expiresIn: config.jwtExpiresIn,
+      }
+    );
+
+    const url = `${config.appUrl}?token=${tableToken}`;
+    res.json({
+      url,
+    });
   } catch (error) {
     next(error);
   }

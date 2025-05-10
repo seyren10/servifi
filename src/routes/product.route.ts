@@ -6,13 +6,15 @@ import {
   getProducts,
   updateProduct,
 } from "../controllers/product.controller";
+import { authorize } from "../middleware/auth";
+import { ClientRole } from "../enums/roles";
 
 const productRouter = Router();
 
-productRouter.get("/", getProducts);
-productRouter.get("/:id", getProduct);
-productRouter.post("/", createProduct);
-productRouter.put("/:id", updateProduct);
-productRouter.delete("/:id", deleteProduct);
+productRouter.get("/", authorize(), getProducts);
+productRouter.get("/:id", authorize(), getProduct);
+productRouter.post("/", authorize(ClientRole.USER), createProduct);
+productRouter.put("/:id", authorize(ClientRole.USER), updateProduct);
+productRouter.delete("/:id", authorize(ClientRole.USER), deleteProduct);
 
 export default productRouter;
