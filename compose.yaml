@@ -11,13 +11,14 @@ services:
   database: 
     image: mongo
     ports:
-      - 27017:27017
+      - 27018:27017
     volumes:
       - mongo-data:/data/db
   cache: 
-    image: redis/redis-stack-server
+    image: redis/redis-stack
     ports:
       - 6379:6379
+      - 8000:8001
     volumes:
       - redis-data:/data
 

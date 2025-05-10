@@ -26,7 +26,9 @@ export async function createTable(
   next: NextFunction
 ) {
   try {
-    const { success, data, error } = createTableSchema.safeParse(req.body);
+    const { success, data, error } = await createTableSchema.safeParseAsync(
+      req.body
+    );
     if (!success) throw new ValidationError(error);
 
     const newTable = await Table.create({ ...data });
@@ -44,7 +46,9 @@ export async function updateTable(
 ) {
   try {
     const { id } = req.params;
-    const { success, data, error } = updateTableSchema.safeParse(req.body);
+    const { success, data, error } = await updateTableSchema.safeParseAsync(
+      req.body
+    );
 
     if (!success) throw new ValidationError(error);
 
