@@ -7,6 +7,7 @@ import { errorHander } from "./middleware/errorHandler";
 import categoryRouter from "./routes/category.route";
 import productRouter from "./routes/product.route";
 import tableRouter from "./routes/table.route";
+import { orderRouter } from "./routes/order.route";
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.get("/", (req: Request, res: Response) => {
 app.use("/api/v1/categories", categoryRouter);
 app.use("/api/v1/products", productRouter);
 app.use("/api/v1/tables", tableRouter);
+app.use("/api/v1/orders", orderRouter);
 
 app.all("/{*splat}", (req: Request, res: Response) => {
   res.status(404).send("Page not found");
