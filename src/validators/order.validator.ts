@@ -5,7 +5,7 @@ export const createOrderSchema = z.object({
   table: z.string().refine(tableIsOccupied, "is not occupied"),
   products: z.array(
     z.object({
-      id: z.string().refine(productIsAvailable, "is not available"),
+      product: z.string().refine(productIsAvailable, "is not available"),
       quantity: z.number().nonnegative().min(1),
     })
   ),

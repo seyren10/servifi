@@ -14,8 +14,8 @@ import { Table as TypeTable } from "../types/table";
  * @param forUser - The role required to access the resource. Defaults to `ClientRole.CUSTOMER`.
  * @returns An Express middleware function that verifies the authorization header and user role.
  *
- * @throws {UnauthorizedError} If the authorization header is missing or the user does not have the required role.
- * @throws {BadTokenError} If the authorization header is malformed or the token is invalid.
+ * @throws { UnauthorizedError } If the authorization header is missing or the user does not have the required role.
+ * @throws { BadTokenError } If the authorization header is malformed or the token is invalid.
  *
  * The middleware performs the following steps:
  * 1. Checks for the presence of the `Authorization` header in the request.
@@ -73,7 +73,7 @@ export function authorize(forUser: ClientRole = ClientRole.CUSTOMER) {
 async function verifyTablePayload(id: string) {
   const table = await Table.findById(id);
 
-  if (table) {
+  if (table && table.status !== TableStatus.OCCUPIED) {
     table.status = TableStatus.OCCUPIED;
     await table.save();
   }
