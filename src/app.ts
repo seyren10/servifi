@@ -13,7 +13,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: config.frontendUrl!,
+    origin: [config.frontendUrl!],
     credentials: true,
   })
 );

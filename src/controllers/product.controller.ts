@@ -35,6 +35,21 @@ export async function getProduct(
   }
 }
 
+export async function getProductsByCategoryId(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const { id } = req.params;
+    const products = await productModel.find({ category: id }).lean();
+
+    res.json(products);
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function createProduct(
   req: Request,
   res: Response,

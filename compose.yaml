@@ -20,6 +20,7 @@ services:
       - 8001:8081
     environment:
       - ME_CONFIG_MONGODB_SERVER=database
+      - ME_CONFIG_OPTIONS_EDITORTHEME=ambiance
     depends_on:
       - database
   cache: 

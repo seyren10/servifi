@@ -2,10 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import orderModel from "../models/order.model";
 import { createOrderSchema } from "../validators/order.validator";
 import { NotFoundError, ValidationError } from "../utils/AppError";
-import mongoose, { ObjectId } from "mongoose";
-import { Order } from "../types/order";
-import { Product } from "../types/product";
-import { Schema } from "zod";
+import mongoose from "mongoose";
 
 export async function getOrders(
   req: Request,

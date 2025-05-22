@@ -117,7 +117,7 @@ export async function generateSession(
       }
     );
 
-    const url = `${config.appUrl}?token=${tableToken}`;
+    const url = `${config.frontendUrl}?token=${tableToken}`;
     res.json({
       url,
     });
