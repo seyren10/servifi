@@ -8,5 +8,5 @@ export const createOrderSchema = z.object({
       product: z.string().refine(productIsAvailable, "is not available"),
       quantity: z.number().nonnegative().min(1),
     })
-  ),
+  ).nonempty(),
 });
