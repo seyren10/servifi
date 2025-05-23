@@ -8,10 +8,9 @@ export const productCreateSchema = z.object({
     message: "Invalid category ID",
   }),
   price: z.number().nonnegative(),
-  imageUrl: z.string().url().optional(),
+  imageUrl: z.string().optional(),
   availability: z.boolean().default(true),
 });
-
 
 export const updateProductSchema = z.object({
   name: z.string().min(1).max(100).optional(),
@@ -23,6 +22,6 @@ export const updateProductSchema = z.object({
     })
     .optional(),
   price: z.number().nonnegative().optional(),
-  imageUrl: z.string().url().optional(),
+  imageUrl: z.string().optional(),
   availability: z.boolean().optional(),
 });

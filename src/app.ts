@@ -21,6 +21,7 @@ app.set("query parser", "extended");
 app.use(morgan("common"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static("public"));
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Welcome to Servifi API!");

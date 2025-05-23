@@ -8,7 +8,11 @@ import {
   createTableSchema,
   updateTableSchema,
 } from "../validators/table.validator";
-import { BadRequestError, ValidationError } from "../utils/AppError";
+import {
+  AccessTokenError,
+  BadRequestError,
+  ValidationError,
+} from "../utils/AppError";
 import { ClientRole } from "../enums/roles";
 import { TableStatus } from "../enums/table";
 
@@ -121,6 +125,22 @@ export async function generateSession(
     res.json({
       url,
     });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getSession(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    if (!req.table) {
+      throw new AccessTokenError();
+    }
+
+    res.send(req.table);
   } catch (error) {
     next(error);
   }

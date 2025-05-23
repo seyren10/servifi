@@ -3,6 +3,7 @@ import {
   createTable,
   deleteTable,
   generateSession,
+  getSession,
   getTables,
   updateTable,
 } from "../controllers/table.controller";
@@ -17,5 +18,6 @@ tableRouter.post("/", createTable);
 tableRouter.put("/:id", updateTable);
 tableRouter.delete("/:id", deleteTable);
 tableRouter.post("/:id/generate-session", generateSession);
+tableRouter.get("/get-session", authorize(ClientRole.CUSTOMER), getSession);
 
 export default tableRouter;
