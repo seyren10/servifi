@@ -53,33 +53,41 @@ export async function getOrderSummary(
           includeCompleted: true,
         }
       )
-      .populate(["products.product", "table"])
+      .populate("products.product", "name")
       .transform((orders) => {
         if (!orders || !orders.length) return;
 
-        return orders.reduce<{
-          products: mongoose.Types.ObjectId[];
-          total: number;
-        }>(
-          (acc, cur) => {
-            const currentProducts = cur.products.map((p) => p.product);
-            const productsTotal = cur.products.reduce<number>((a, c) => {
-              a += c.total;
-              return a;
-            }, 0);
+        return orders
+          .filter((o) => o.completed)
+          .reduce<{
+            products: {
+              _id?: mongoose.Types.ObjectId;
+              product: mongoose.Types.ObjectId;
+              quantity: number;
+            }[];
+            total: number;
+          }>(
+            (acc, cur) => {
+              const currentProducts = cur.products.map((p) => {
+                return { _id: p._id, product: p.product, quantity: p.quantity };
+              });
 
-            acc.products.push(...currentProducts);
-            acc.total += productsTotal;
-            return acc;
-          },
-          { products: [], total: 0 }
-        );
+              const productsTotal = cur.products.reduce<number>((a, c) => {
+                a += c.total;
+                return a;
+              }, 0);
+
+              acc.products.push(...currentProducts);
+              acc.total += productsTotal;
+              return acc;
+            },
+            { products: [], total: 0 }
+          );
       })
       .lean();
 
     if (!orders) throw new NotFoundError("Resource not found");
 
-    console.log(orders);
     res.json(orders);
   } catch (error) {
     next(error);

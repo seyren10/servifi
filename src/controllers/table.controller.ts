@@ -11,10 +11,12 @@ import {
 import {
   AccessTokenError,
   BadRequestError,
+  NotFoundError,
   ValidationError,
 } from "../utils/AppError";
 import { ClientRole } from "../enums/roles";
 import { TableStatus } from "../enums/table";
+import orderModel from "../models/order.model";
 
 export async function getTables(
   req: Request,
@@ -141,6 +143,26 @@ export async function getSession(
     }
 
     res.send(req.table);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function billOut(req: Request, res: Response, next: NextFunction) {
+  try {
+    if (!req.table) throw new NotFoundError("Table not found");
+
+    const { table } = req;
+    if (table.status !== TableStatus.OCCUPIED)
+      throw new BadRequestError("Table should be occupied");
+
+    const orders = await orderModel
+      .find({ table: table._id, completed: true }, null, {
+        includeCompleted: true,
+      })
+      .lean();
+
+    res.json(orders);
   } catch (error) {
     next(error);
   }

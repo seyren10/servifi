@@ -7,6 +7,7 @@ import mongoose, {
 export type Order = Document & {
   table: mongoose.Types.ObjectId;
   products: {
+    _id?: mongoose.Types.ObjectId; // Optional for new items
     product: mongoose.Types.ObjectId;
     quantity: number;
     total: number;
