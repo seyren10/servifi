@@ -17,6 +17,8 @@ import {
 import { ClientRole } from "../enums/roles";
 import { TableStatus } from "../enums/table";
 import orderModel from "../models/order.model";
+import { mergeCollectionResource } from "../resources/order.resource";
+import receiptModel from "../models/receipt.model";
 
 export async function getTables(
   req: Request,
@@ -160,9 +162,36 @@ export async function billOut(req: Request, res: Response, next: NextFunction) {
       .find({ table: table._id, completed: true }, null, {
         includeCompleted: true,
       })
-      .lean();
+      .lean()
+      .transform(mergeCollectionResource)
+      .exec();
 
-    res.json(orders);
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+      const [_, token] = authHeader.split(" ");
+
+      //throw an error when this session already billed out
+      const existingSession = await receiptModel
+        .findOne({ session: token })
+        .lean();
+      if (existingSession)
+        throw new BadRequestError("Session already billed out");
+
+      const receipt = await receiptModel.create({
+        session: token,
+        products: orders.products,
+      });
+
+      table.status = TableStatus.AVAILABLE;
+
+      //delete orders
+      await Promise.all([
+        await orderModel.deleteMany({ table: table._id, completed: true }), //delete all the recorded orders
+        await table.save(), //make the table available again
+      ]);
+    }
+
+    res.status(204).json();
   } catch (error) {
     next(error);
   }

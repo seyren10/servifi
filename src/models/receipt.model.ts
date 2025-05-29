@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { CallbackError, Schema } from "mongoose";
 import { Receipt } from "../types/receipt";
 
 const receiptSchema = new Schema<Receipt>({
@@ -8,7 +8,7 @@ const receiptSchema = new Schema<Receipt>({
   },
   products: [
     {
-      productId: {
+      product: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Product",
         required: true,
@@ -16,7 +16,6 @@ const receiptSchema = new Schema<Receipt>({
       },
       quantity: {
         type: Number,
-        required: true,
       },
       total: Number,
     },
@@ -24,6 +23,21 @@ const receiptSchema = new Schema<Receipt>({
   total: Number,
 });
 
+receiptSchema.pre("save", async function (next) {
+  try {
+    // Skip if products not modified
+    if (!this.isModified("products")) return next();
+
+    const total = this.products.reduce<number>(
+      (acc, cur) => (acc += cur.total),
+      0
+    );
+    this.total = total;
+    next();
+  } catch (err) {
+    next(err as CallbackError);
+  }
+});
 const receiptModel = mongoose.model("Receipt", receiptSchema);
 
 export default receiptModel;
