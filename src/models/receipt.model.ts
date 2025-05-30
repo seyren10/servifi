@@ -5,6 +5,7 @@ const receiptSchema = new Schema<Receipt>({
   session: {
     type: String,
     required: true,
+    index: true,
   },
   products: [
     {

@@ -13,11 +13,14 @@ import { ClientRole } from "../enums/roles";
 
 const tableRouter = Router();
 
+tableRouter.use(authorize(ClientRole.CUSTOMER));
+tableRouter.get("/get-session", getSession);
+tableRouter.post("/:id/bill-out", billOut);
+
+tableRouter.use(authorize(ClientRole.USER));
 tableRouter.get("/", getTables);
-tableRouter.get("/get-session", authorize(ClientRole.CUSTOMER), getSession);
 tableRouter.post("/", createTable);
 tableRouter.post("/:id/generate-session", generateSession);
-tableRouter.post("/:id/bill-out", authorize(ClientRole.CUSTOMER), billOut);
 tableRouter.put("/:id", updateTable);
 tableRouter.delete("/:id", deleteTable);
 

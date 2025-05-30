@@ -98,13 +98,6 @@ export async function generateSession(
   next: NextFunction
 ) {
   try {
-    if (!config.jwtSecret) {
-      logger.error(
-        "JWT_SECRET is not set, please configure it in your .env file"
-      );
-      process.exit(1);
-    }
-
     const { id } = req.params;
     const table = await Table.findById(id);
 
@@ -119,7 +112,7 @@ export async function generateSession(
         type: ClientRole.CUSTOMER,
         id: table?._id,
       },
-      config.jwtSecret,
+      config.jwtSecret!,
       {
         expiresIn: config.jwtExpiresIn,
       }
@@ -169,13 +162,6 @@ export async function billOut(req: Request, res: Response, next: NextFunction) {
     const authHeader = req.headers.authorization;
     if (authHeader) {
       const [_, token] = authHeader.split(" ");
-
-      //throw an error when this session already billed out
-      const existingSession = await receiptModel
-        .findOne({ session: token })
-        .lean();
-      if (existingSession)
-        throw new BadRequestError("Session already billed out");
 
       const receipt = await receiptModel.create({
         session: token,

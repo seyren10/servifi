@@ -1,4 +1,4 @@
-import { Document } from "mongoose";
+import { Document, Model } from "mongoose";
 
 export type User = Document & {
   _id: string;
@@ -6,4 +6,8 @@ export type User = Document & {
   password: string;
   name: string;
   isAdmin: boolean;
+};
+
+export type UserMethods = {
+  comparePassword: (password: string) => Promise<boolean>;
 };

@@ -1,5 +1,10 @@
 import { NextFunction, Request, Response } from "express";
-import { BadTokenError, UnauthorizedError } from "../utils/AppError";
+import {
+  BadTokenError,
+  NotFoundError,
+  TokenExpiredError,
+  UnauthorizedError,
+} from "../utils/AppError";
 import jwt, { JsonWebTokenError } from "jsonwebtoken";
 import config from "../config/dotenv";
 import { JwtAuthPayload } from "../types/jwt";
@@ -7,6 +12,8 @@ import { ClientRole } from "../enums/roles";
 import Table from "../models/table.model";
 import { TableStatus } from "../enums/table";
 import { Table as TypeTable } from "../types/table";
+import User from "../models/user.model";
+import receiptModel from "../models/receipt.model";
 
 /**
  * Middleware function to authorize requests based on user roles.
@@ -41,6 +48,14 @@ export function authorize(forUser: ClientRole = ClientRole.CUSTOMER) {
       const [prefix, token] = authHeader.split(" ");
       if (!prefix || !token) throw new BadTokenError();
 
+      /* this is essentially checking for blacklisted token using receipt session */
+      const session = await receiptModel
+        .findOne({ session: token })
+        .lean()
+        .exec();
+
+      if (session) throw new TokenExpiredError();
+
       const payload = jwt.verify(token, config.jwtSecret!) as JwtAuthPayload;
 
       if (payload.type === ClientRole.CUSTOMER && forUser === ClientRole.USER) {
@@ -50,6 +65,11 @@ export function authorize(forUser: ClientRole = ClientRole.CUSTOMER) {
       if (payload.type === ClientRole.CUSTOMER) {
         const model = await verifyTablePayload(payload.id);
         req.table = model;
+      }
+
+      if (payload.type === ClientRole.USER) {
+        const model = await verifyUserPayload(payload.id);
+        req.user = model;
       }
 
       next();
@@ -79,4 +99,12 @@ async function verifyTablePayload(id: string) {
   }
 
   return table as TypeTable;
+}
+
+async function verifyUserPayload(id: string) {
+  const user = await User.findById(id);
+
+  if (!user) throw new NotFoundError("User not found");
+
+  return user;
 }

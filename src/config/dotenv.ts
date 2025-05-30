@@ -27,4 +27,8 @@ if (!config.appUrl) {
   config.appUrl = `http://localhost:${config.port}`;
 }
 
+if (!config.jwtSecret) {
+  throw new Error("JWT_SECRET is not defined in environment variables");
+}
+
 export default config;

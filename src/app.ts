@@ -8,6 +8,7 @@ import categoryRouter from "./routes/category.route";
 import productRouter from "./routes/product.route";
 import tableRouter from "./routes/table.route";
 import { orderRouter } from "./routes/order.route";
+import authRouter from "./routes/auth.route";
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.get("/", (req: Request, res: Response) => {
   res.send("Welcome to Servifi API!");
 });
 
+app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/categories", categoryRouter);
 app.use("/api/v1/products", productRouter);
 app.use("/api/v1/tables", tableRouter);
