@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import orderModel from "../models/order.model";
 import { createOrderSchema } from "../validators/order.validator";
 import { NotFoundError, ValidationError } from "../utils/AppError";
-import mongoose from "mongoose";
+import { mergeCollectionResource } from "../resources/order.resource";
 
 export async function getOrders(
   req: Request,
@@ -47,44 +47,17 @@ export async function getOrderSummary(
       .find(
         {
           table: tableId,
+          completed: true,
         },
         null,
         {
           includeCompleted: true,
         }
       )
+      .lean()
+      .transform(mergeCollectionResource)
       .populate("products.product", "name")
-      .transform((orders) => {
-        if (!orders || !orders.length) return;
-
-        return orders
-          .filter((o) => o.completed)
-          .reduce<{
-            products: {
-              _id?: mongoose.Types.ObjectId;
-              product: mongoose.Types.ObjectId;
-              quantity: number;
-            }[];
-            total: number;
-          }>(
-            (acc, cur) => {
-              const currentProducts = cur.products.map((p) => {
-                return { _id: p._id, product: p.product, quantity: p.quantity };
-              });
-
-              const productsTotal = cur.products.reduce<number>((a, c) => {
-                a += c.total;
-                return a;
-              }, 0);
-
-              acc.products.push(...currentProducts);
-              acc.total += productsTotal;
-              return acc;
-            },
-            { products: [], total: 0 }
-          );
-      })
-      .lean();
+      .exec();
 
     if (!orders) throw new NotFoundError("Resource not found");
 

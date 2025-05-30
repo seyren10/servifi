@@ -3,6 +3,7 @@ import { Order, OrderProduct } from "../types/order";
 
 export const mergeCollectionResource = (res: FlattenMaps<Order>[]) => {
   const tableId = res.at(0)?.table;
+  let grandTotal = 0;
 
   const productMap = new Map<Types.ObjectId, FlattenMaps<OrderProduct>>();
 
@@ -17,6 +18,8 @@ export const mergeCollectionResource = (res: FlattenMaps<Order>[]) => {
       } else {
         productMap.set(id, { quantity, total, product: id });
       }
+
+      grandTotal += total;
     }
   }
   const productArray = Array.from(productMap.values());
@@ -24,5 +27,6 @@ export const mergeCollectionResource = (res: FlattenMaps<Order>[]) => {
   return {
     table: tableId,
     products: productArray,
+    total: grandTotal,
   };
 };

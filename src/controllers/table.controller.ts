@@ -182,13 +182,10 @@ export async function billOut(req: Request, res: Response, next: NextFunction) {
         products: orders.products,
       });
 
-      table.status = TableStatus.AVAILABLE;
+      await orderModel.deleteMany({ table: table._id, completed: true }); //delete all the recorded orders
 
-      //delete orders
-      await Promise.all([
-        await orderModel.deleteMany({ table: table._id, completed: true }), //delete all the recorded orders
-        await table.save(), //make the table available again
-      ]);
+      table.status = TableStatus.AVAILABLE;
+      await table.save(); //make the table available again
     }
 
     res.status(204).json();
