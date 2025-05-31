@@ -1,28 +1,33 @@
 import mongoose, { CallbackError, Schema } from "mongoose";
 import { Receipt } from "../types/receipt";
 
-const receiptSchema = new Schema<Receipt>({
-  session: {
-    type: String,
-    required: true,
-    index: true,
-  },
-  products: [
-    {
-      product: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Product",
-        required: true,
-        index: true,
-      },
-      quantity: {
-        type: Number,
-      },
-      total: Number,
+const receiptSchema = new Schema<Receipt>(
+  {
+    session: {
+      type: String,
+      required: true,
+      index: true,
     },
-  ],
-  total: Number,
-});
+    products: [
+      {
+        product: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Product",
+          required: true,
+          index: true,
+        },
+        quantity: {
+          type: Number,
+        },
+        total: Number,
+      },
+    ],
+    total: Number,
+  },
+  {
+    timestamps: true,
+  }
+);
 
 receiptSchema.pre("save", async function (next) {
   try {

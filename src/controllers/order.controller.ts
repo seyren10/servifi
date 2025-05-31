@@ -10,13 +10,25 @@ export async function getOrders(
   next: NextFunction
 ) {
   try {
-    const orders = await orderModel.find().lean();
+    const { populate } = req.query;
+    const orderQuery = orderModel.find();
+
+    if (populate) {
+      const populateString = populate.toString().replace(",", " ");
+      orderQuery.populate({
+        path: populateString,
+        strictPopulate: false,
+      });
+    }
+
+    const orders = await orderQuery.exec();
 
     res.json(orders);
   } catch (error) {
     next(error);
   }
 }
+
 export async function getOrder(
   req: Request,
   res: Response,
@@ -36,6 +48,7 @@ export async function getOrder(
     next(error);
   }
 }
+
 export async function getOrderSummary(
   req: Request,
   res: Response,

@@ -82,7 +82,7 @@ export async function signIn(req: Request, res: Response, next: NextFunction) {
     );
 
     res.json({
-      ...user.toJSON(),
+      user,
       token,
     });
   } catch (error) {
