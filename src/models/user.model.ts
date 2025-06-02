@@ -38,9 +38,9 @@ const userSchema = new Schema<User, Model<User>, UserMethods>(
     methods: {
       comparePassword: async function (password: string): Promise<boolean> {
         try {
-          if (!this.isModified("password")) return true;
+          if (!this.password) return false;
 
-          const isMatch = await bcrypt.compare(this.password, password);
+          const isMatch = await bcrypt.compare(password, this.password);
 
           return isMatch;
         } catch (error) {

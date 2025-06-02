@@ -13,5 +13,5 @@ export const authSignUpValidator = z.object({
 
 export const authSignInValidator = z.object({
   email: z.string().email(),
-  password: authSignUpValidator.shape.password,
+  password: z.string(),
 });

@@ -63,7 +63,7 @@ export async function signIn(req: Request, res: Response, next: NextFunction) {
 
     if (!success) throw new UnauthorizedError("Invalid email or password");
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }, "+password");
 
     if (!user) throw new UnauthorizedError("Invalid email or password");
 
