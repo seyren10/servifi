@@ -168,7 +168,12 @@ export async function billOut(req: Request, res: Response, next: NextFunction) {
         products: orders.products,
       });
 
-      await orderModel.deleteMany({ table: table._id, completed: true }); //delete all the recorded orders
+      await orderModel.deleteMany(
+        { table: table._id },
+        {
+          includeCompleted: true,
+        }
+      ); //delete all the recorded orders
 
       table.status = TableStatus.AVAILABLE;
       await table.save(); //make the table available again

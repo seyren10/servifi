@@ -3,6 +3,7 @@ import orderModel from "../models/order.model";
 import { createOrderSchema } from "../validators/order.validator";
 import { NotFoundError, ValidationError } from "../utils/AppError";
 import { mergeCollectionResource } from "../resources/order.resource";
+import { getIO } from "../config/socket";
 
 export async function getOrders(
   req: Request,
@@ -93,6 +94,12 @@ export async function createOrder(
 
     const createdOrder = await orderModel.create(data);
 
+    const io = getIO();
+
+    io.emit("order-created", {
+      message: "New order created",
+    });
+
     res.status(201).json(createdOrder);
   } catch (error) {
     next(error);
@@ -126,6 +133,12 @@ export async function completeOrder(
     if (order && !order.completed) {
       order.completed = true;
       await order.save();
+
+      const io = getIO();
+
+      io.to(order.table.toString()).emit("order-completed", {
+        message: "Order completed",
+      });
     }
 
     res.status(204).json();
