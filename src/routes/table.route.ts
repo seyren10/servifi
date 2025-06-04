@@ -5,6 +5,7 @@ import {
   deleteTable,
   generateSession,
   getSession,
+  getTable,
   getTables,
   updateTable,
 } from "../controllers/table.controller";
@@ -16,9 +17,9 @@ const tableRouter = Router();
 tableRouter.use(authorize(ClientRole.CUSTOMER));
 tableRouter.get("/get-session", getSession);
 tableRouter.post("/:id/bill-out", billOut);
-
 tableRouter.use(authorize(ClientRole.USER));
 tableRouter.get("/", getTables);
+tableRouter.get("/:id", getTable);
 tableRouter.post("/", createTable);
 tableRouter.post("/:id/generate-session", generateSession);
 tableRouter.put("/:id", updateTable);

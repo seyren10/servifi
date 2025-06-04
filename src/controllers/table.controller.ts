@@ -19,6 +19,8 @@ import { TableStatus } from "../enums/table";
 import orderModel from "../models/order.model";
 import { mergeCollectionResource } from "../resources/order.resource";
 import receiptModel from "../models/receipt.model";
+import { ZodError } from "zod";
+import mongoose from "mongoose";
 
 export async function getTables(
   req: Request,
@@ -29,6 +31,22 @@ export async function getTables(
     const tables = await Table.find();
 
     res.json(tables);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getTable(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const { id } = req.params;
+
+    const table = await Table.findById(id).lean().exec();
+
+    res.json(table);
   } catch (error) {
     next(error);
   }
@@ -60,11 +78,23 @@ export async function updateTable(
 ) {
   try {
     const { id } = req.params;
-    const { success, data, error } = await updateTableSchema.safeParseAsync(
-      req.body
-    );
+    const { success, data, error } = updateTableSchema.safeParse(req.body);
 
     if (!success) throw new ValidationError(error);
+
+    const { number } = data;
+    const existingTable = await Table.findOne({ number }).lean();
+
+    if (existingTable && existingTable._id.toString() !== id)
+      throw new ValidationError(
+        new ZodError([
+          {
+            path: ["number"],
+            message: "Table already exists",
+            code: "custom",
+          },
+        ])
+      );
 
     const updatedTable = await Table.findByIdAndUpdate(
       id,
@@ -85,6 +115,7 @@ export async function deleteTable(
   try {
     const { id } = req.params;
     await Table.findByIdAndDelete(id);
+    await orderModel.deleteMany({ table: id });
 
     res.status(204).json();
   } catch (error) {
