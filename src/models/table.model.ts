@@ -19,6 +19,9 @@ const tableSchema = new Schema<Table>(
       enum: Object.values(TableStatus),
       default: TableStatus.AVAILABLE,
     },
+    activeSession: {
+      type: String,
+    },
   },
   {
     timestamps: true,

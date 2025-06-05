@@ -5,4 +5,5 @@ export type Table = Document & {
   number: number;
   capacity: number;
   status: TableStatus;
+  activeSession?: string;
 };

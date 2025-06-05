@@ -20,7 +20,8 @@ import orderModel from "../models/order.model";
 import { mergeCollectionResource } from "../resources/order.resource";
 import receiptModel from "../models/receipt.model";
 import { ZodError } from "zod";
-import mongoose from "mongoose";
+import { OrderProduct } from "../types/order";
+import { getIO } from "../config/socket";
 
 export async function getTables(
   req: Request,
@@ -28,7 +29,7 @@ export async function getTables(
   next: NextFunction
 ) {
   try {
-    const tables = await Table.find();
+    const tables = await Table.find().sort({ updatedAt: -1 });
 
     res.json(tables);
   } catch (error) {
@@ -135,9 +136,6 @@ export async function generateSession(
     if (table?.status !== TableStatus.AVAILABLE)
       throw new BadRequestError("Table already occupied");
 
-    table.status = TableStatus.RESERVED;
-    await table.save();
-
     const tableToken = jwt.sign(
       {
         type: ClientRole.CUSTOMER,
@@ -150,6 +148,11 @@ export async function generateSession(
     );
 
     const url = `${config.frontendUrl}?token=${tableToken}`;
+
+    table.status = TableStatus.RESERVED;
+    table.activeSession = tableToken;
+    await table.save();
+
     res.json({
       url,
     });
@@ -174,13 +177,50 @@ export async function getSession(
   }
 }
 
-export async function billOut(req: Request, res: Response, next: NextFunction) {
+export async function requestBillOut(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   try {
     if (!req.table) throw new NotFoundError("Table not found");
 
     const { table } = req;
     if (table.status !== TableStatus.OCCUPIED)
       throw new BadRequestError("Table should be occupied");
+
+    table.status = TableStatus.BILLOUT;
+    await table.save();
+
+    const io = getIO();
+
+    io.emit("table-update", {
+      message: `Table # ${table.number} has requested the bill.`,
+    });
+
+    res.status(204).json();
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * Bill out for auth users with controls
+ * @param req
+ * @param res
+ * @param next
+ */
+export async function billOut(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { id } = req.params;
+
+    const { norecord } = req.query as {
+      /** No products and total will be included on receipt */
+      norecord?: string;
+    };
+
+    const table = await Table.findById(id).exec();
+    if (!table) throw new NotFoundError();
 
     const orders = await orderModel
       .find({ table: table._id, completed: true }, null, {
@@ -190,25 +230,34 @@ export async function billOut(req: Request, res: Response, next: NextFunction) {
       .transform(mergeCollectionResource)
       .exec();
 
-    const authHeader = req.headers.authorization;
-    if (authHeader) {
-      const [_, token] = authHeader.split(" ");
+    if (!table.activeSession)
+      throw new NotFoundError("No active session found");
 
-      const receipt = await receiptModel.create({
-        session: token,
-        products: orders.products,
+    const receipt = new receiptModel();
+    receipt.session = table.activeSession;
+
+    if (!norecord)
+      receipt.products = orders.products.map((p: OrderProduct) => {
+        return {
+          productId: p.product,
+          quantity: p.quantity,
+          total: p.total,
+          _id: p._id,
+        };
       });
 
-      await orderModel.deleteMany(
-        { table: table._id },
-        {
-          includeCompleted: true,
-        }
-      ); //delete all the recorded orders
+    await receipt.save();
 
-      table.status = TableStatus.AVAILABLE;
-      await table.save(); //make the table available again
-    }
+    await orderModel.deleteMany(
+      { table: table._id },
+      {
+        includeCompleted: true,
+      }
+    ); //delete all the recorded orders
+
+    table.status = TableStatus.AVAILABLE;
+    table.activeSession = undefined;
+    await table.save(); //make the table available again
 
     res.status(204).json();
   } catch (error) {
