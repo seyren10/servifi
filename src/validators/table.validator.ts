@@ -14,10 +14,7 @@ export const createTableSchema = z.object({
 
 export const updateTableSchema = z
   .object({
-    number: z
-      .number()
-      .nonnegative()
-      .refine(exists(Table, "number", true), "Table number already Exists"),
+    number: z.number().nonnegative(),
     capacity: z.number().nonnegative(),
     status: z.nativeEnum(TableStatus),
   })

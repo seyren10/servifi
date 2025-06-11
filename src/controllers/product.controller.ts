@@ -12,7 +12,11 @@ export async function getProducts(
   next: NextFunction
 ) {
   try {
-    const products = await productModel.find().lean();
+    const products = await productModel
+      .find()
+      .populate("category", "name")
+      .lean()
+      .exec();
 
     res.json(products);
   } catch (error) {

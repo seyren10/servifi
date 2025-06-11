@@ -2,9 +2,9 @@ import { NextFunction, Request, Response } from "express";
 import logger from "../config/winston";
 import {
   AppError,
-  BadTokenError,
   MongooseValidationError,
   NotFoundError,
+  TokenExpiredError,
 } from "../utils/AppError";
 import { Error } from "mongoose";
 import { JsonWebTokenError } from "jsonwebtoken";
@@ -29,7 +29,7 @@ export function errorHander(
     }
 
     if (error instanceof JsonWebTokenError) {
-      error = new BadTokenError();
+      error = new TokenExpiredError();
     }
 
     if (error instanceof AppError) {
