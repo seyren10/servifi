@@ -10,6 +10,10 @@ import tableRouter from "./routes/table.route";
 import { orderRouter } from "./routes/order.route";
 import authRouter from "./routes/auth.route";
 
+/* workers */
+import "./queues/imageDelete.worker";
+import "./queues/imageUpload.worker";
+
 const app = express();
 
 app.use(

@@ -8,6 +8,7 @@ declare global {
     export interface Request {
       user?: User;
       table?: Table;
+      file?: File;
     }
   }
 }

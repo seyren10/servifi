@@ -1,5 +1,11 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, {
+  CallbackError,
+  CallbackWithoutResultAndOptionalError,
+  HydratedDocument,
+  Schema,
+} from "mongoose";
 import { Product } from "../types/product";
+import { deleteImageJob } from "../queues/imageDelete.queue";
 
 const productSchema = new Schema<Product>(
   {
@@ -43,6 +49,21 @@ const productSchema = new Schema<Product>(
     timestamps: true,
   }
 );
+
+async function deleteCloudImage(
+  doc: HydratedDocument<Product>,
+  next: CallbackWithoutResultAndOptionalError
+) {
+  try {
+    if (doc?.imageUrl) {
+      await deleteImageJob(doc.imageUrl);
+    }
+  } catch (error) {
+    next(error as CallbackError);
+  }
+}
+productSchema.post("deleteOne", deleteCloudImage);
+productSchema.post("findOneAndDelete", deleteCloudImage);
 
 const productModel = mongoose.model<Product>("Product", productSchema);
 

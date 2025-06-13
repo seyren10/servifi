@@ -7,8 +7,15 @@ export const productCreateSchema = z.object({
   category: z.string().refine((val) => Types.ObjectId.isValid(val), {
     message: "Invalid category ID",
   }),
-  price: z.number().nonnegative(),
-  imageUrl: z.string().optional(),
+  price: z.coerce.number().nonnegative(),
+  image: z
+    .custom<Express.Multer.File>()
+    .refine((file) => {
+      return file.size < 4000 * 1024;
+    }, "should be maximum of 4mb")
+    .refine((file) => {
+      return file.mimetype.startsWith("image");
+    }, "should be of type image"),
   availability: z.boolean().default(true),
 });
 
@@ -22,6 +29,14 @@ export const updateProductSchema = z.object({
     })
     .optional(),
   price: z.number().nonnegative().optional(),
-  imageUrl: z.string().optional(),
+  image: z
+    .custom<Express.Multer.File>()
+    .refine((file) => {
+      return file.size < 4000 * 1024;
+    }, "should be maximum of 4mb")
+    .refine((file) => {
+      return file.mimetype.startsWith("image");
+    }, "should be of type image")
+    .optional(),
   availability: z.boolean().optional(),
 });

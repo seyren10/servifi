@@ -5,6 +5,8 @@ import {
   updateProductSchema,
 } from "../validators/product.validator";
 import { ValidationError } from "../utils/AppError";
+import { addImageUploadJob } from "../queues/imageUpload.queue";
+import { deleteImageJob } from "../queues/imageDelete.queue";
 
 export async function getProducts(
   req: Request,
@@ -60,10 +62,14 @@ export async function createProduct(
   next: NextFunction
 ) {
   try {
+    req.body.image = req.file;
     const { success, data, error } = productCreateSchema.safeParse(req.body);
 
     if (!success) throw new ValidationError(error);
+
     const createdProduct = await productModel.create(data);
+
+    await addImageUploadJob(createdProduct._id.toString(), data.image.path);
 
     res.status(201).json(createdProduct);
   } catch (error) {
@@ -78,13 +84,20 @@ export async function updateProduct(
 ) {
   try {
     const { id } = req.params;
+    req.body.image = req.file;
     const { success, data, error } = updateProductSchema.safeParse(req.body);
 
     if (!success) throw new ValidationError(error);
 
-    await productModel.findByIdAndUpdate(id, {
+    const product = await productModel.findByIdAndUpdate(id, {
       ...data,
     });
+
+    console.log(data.image?.filename, product?.imageUrl);
+    if (data.image && product?.imageUrl) {
+      await deleteImageJob(product.imageUrl);
+      await addImageUploadJob(product._id.toString(), data.image.path);
+    }
 
     res.status(204).json();
   } catch (error) {

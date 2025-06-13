@@ -20,4 +20,8 @@ export async function connectToDatabase() {
   }
 }
 
+export async function disconnectToDatabase() {
+  await mongoose.disconnect();
+}
+
 export default connectToDatabase;

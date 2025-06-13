@@ -9,6 +9,10 @@ export type Config = Partial<{
   frontendUrl: string;
   jwtSecret: string;
   jwtExpiresIn: jwt.SignOptions["expiresIn"];
+  cloudinaryName: string;
+  cloudinaryApiKey: string;
+  cloudinarySecretKey: string;
+  redisUrl: string;
 }>;
 
 const config: Config = {
@@ -21,6 +25,10 @@ const config: Config = {
   jwtExpiresIn: (process.env.JWT_EXPIRES_IN ||
     "1d") as jwt.SignOptions["expiresIn"],
   jwtSecret: process.env.JWT_SECRET,
+  cloudinaryName: process.env.CLOUDINARY_CLOUD_NAME,
+  cloudinarySecretKey: process.env.CLOUDINARY_API_SECRET,
+  cloudinaryApiKey: process.env.CLOUDINARY_API_KEY,
+  redisUrl: process.env.REDIS_URL || "redis://localhost:6379",
 };
 
 if (!config.appUrl) {
