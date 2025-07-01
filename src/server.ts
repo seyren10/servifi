@@ -3,6 +3,7 @@ import config from "./config/dotenv";
 import connectToDatabase from "./config/mongoose";
 import { createServer } from "http";
 import { createSocketServer } from "./config/socket";
+import redisClient from "./config/redis";
 
 const server = createServer(app);
 
@@ -11,6 +12,7 @@ const io = createSocketServer(server);
 server.listen(config.port!, async () => {
   console.log(`App listening to port ${config.port}`);
   await connectToDatabase();
+  await redisClient.connect();
 });
 
 io.on("connection", (socket) => {
