@@ -5,8 +5,8 @@ import {
   updateProductSchema,
 } from "../validators/product.validator";
 import { ValidationError } from "../utils/AppError";
-import { addImageUploadJob } from "../queues/imageUpload.queue";
-import { deleteImageJob } from "../queues/imageDelete.queue";
+import { deleteImageJob } from "../workers/imageDelete.queue";
+import { imageUploadQueue } from "../workers/imageUpload.worker";
 
 export async function getProducts(
   req: Request,
@@ -16,6 +16,7 @@ export async function getProducts(
   try {
     const products = await productModel
       .find()
+      .sort({ createdAt: "desc" })
       .populate("category", "name")
       .lean()
       .exec();
@@ -69,7 +70,12 @@ export async function createProduct(
 
     const createdProduct = await productModel.create(data);
 
-    await addImageUploadJob(createdProduct._id.toString(), data.image.path);
+    if (data.image) {
+      imageUploadQueue.add("image-upload", {
+        productId: createdProduct?._id.toString(),
+        imagePath: data.image.path,
+      });
+    }
 
     res.status(201).json(createdProduct);
   } catch (error) {
@@ -93,10 +99,13 @@ export async function updateProduct(
       ...data,
     });
 
-    console.log(data.image?.filename, product?.imageUrl);
-    if (data.image && product?.imageUrl) {
-      await deleteImageJob(product.imageUrl);
-      await addImageUploadJob(product._id.toString(), data.image.path);
+    if (data.image) {
+      if (product?.imageUrl) await deleteImageJob(product.imageUrl);
+
+      await imageUploadQueue.add("image-upload", {
+        productId: product?._id.toString(),
+        imagePath: data.image.path,
+      });
     }
 
     res.status(204).json();

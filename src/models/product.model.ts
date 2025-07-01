@@ -5,7 +5,7 @@ import mongoose, {
   Schema,
 } from "mongoose";
 import { Product } from "../types/product";
-import { deleteImageJob } from "../queues/imageDelete.queue";
+import { deleteImageJob } from "../workers/imageDelete.queue";
 
 const productSchema = new Schema<Product>(
   {

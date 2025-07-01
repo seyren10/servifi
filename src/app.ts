@@ -11,8 +11,8 @@ import { orderRouter } from "./routes/order.route";
 import authRouter from "./routes/auth.route";
 
 /* workers */
-import "./queues/imageDelete.worker";
-import "./queues/imageUpload.worker";
+import "./workers/imageDelete.worker";
+import "./workers/imageUpload.worker";
 
 const app = express();
 
@@ -26,7 +26,6 @@ app.set("query parser", "extended");
 app.use(morgan("common"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static("public"));
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Welcome to Servifi API!");

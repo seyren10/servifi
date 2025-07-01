@@ -8,6 +8,10 @@ const categorySchema = new mongoose.Schema<Category>(
       required: true,
       maxlength: 50,
     },
+    icon: {
+      type: String,
+      required: true,
+    },
   },
   {
     timestamps: true,
