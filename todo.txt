@@ -1,0 +1,6 @@
+todo:
+  - name: name of promos
+  - products: products that will be available for such promo
+
+later todo: 
+   - restrict the customer to only show what promo they avail
