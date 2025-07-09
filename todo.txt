@@ -1,6 +1,4 @@
-todo:
-  - name: name of promos
-  - products: products that will be available for such promo
-
-later todo: 
-   - restrict the customer to only show what promo they avail
+07/09/25: 
+services:
+ - create crud for services
+ - with realtime notif using IO

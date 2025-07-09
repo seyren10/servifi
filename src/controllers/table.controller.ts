@@ -6,6 +6,7 @@ import logger from "../config/winston";
 import { NextFunction, Request, Response } from "express";
 import {
   createTableSchema,
+  generateTableSessionSchema,
   updateTableSchema,
 } from "../validators/table.validator";
 import {
@@ -22,6 +23,9 @@ import receiptModel from "../models/receipt.model";
 import { ZodError } from "zod";
 import { OrderProduct } from "../types/order";
 import { getIO } from "../config/socket";
+import { validPromos } from "../utils/promo.helpers";
+import { JwtAuthPayload } from "../types/jwt";
+import promoModel from "../models/promo.model";
 
 export async function getTables(
   req: Request,
@@ -130,17 +134,32 @@ export async function generateSession(
   next: NextFunction
 ) {
   try {
-    const { id } = req.params;
+    const { id, promoId } = req.params;
+
     const table = await Table.findById(id);
+
+    if (!table) throw new NotFoundError("Table not found");
 
     if (table?.status !== TableStatus.AVAILABLE)
       throw new BadRequestError("Table already occupied");
 
+    const promo = await promoModel.findById(promoId).lean().exec();
+
+    if (!promo) throw new NotFoundError("Promo not found");
+    if (promo.restrictedProducts && promo.restrictedProducts.length) {
+      const isPromoValid = await validPromos(
+        promo.restrictedProducts as unknown as string[]
+      );
+      if (!isPromoValid)
+        throw new BadRequestError("Some of the products doesnt exist");
+    }
+
     const tableToken = jwt.sign(
       {
         type: ClientRole.CUSTOMER,
-        id: table?._id,
-      },
+        id: table._id as string,
+        restrictedProductIds: promo.restrictedProducts as unknown as string[],
+      } satisfies JwtAuthPayload,
       config.jwtSecret!,
       {
         expiresIn: config.jwtExpiresIn,
@@ -170,7 +189,6 @@ export async function getSession(
     if (!req.table) {
       throw new AccessTokenError();
     }
-
     res.send(req.table);
   } catch (error) {
     next(error);

@@ -1,9 +1,15 @@
 import { NextFunction, Request, Response } from "express";
 import orderModel from "../models/order.model";
 import { createOrderSchema } from "../validators/order.validator";
-import { NotFoundError, ValidationError } from "../utils/AppError";
+import {
+  BadRequestError,
+  NotFoundError,
+  ValidationError,
+} from "../utils/AppError";
 import { mergeCollectionResource } from "../resources/order.resource";
 import { getIO } from "../config/socket";
+import { getRestrictedProductsFromJwt } from "../utils/products.helpers";
+import productModel from "../models/product.model";
 
 export async function getOrders(
   req: Request,
@@ -91,6 +97,19 @@ export async function createOrder(
       req.body
     );
     if (!success) throw new ValidationError(error);
+
+    const productIds = data.products.map((p) => p.product);
+    const products = await productModel
+      .where("_id")
+      .in(productIds)
+      .lean()
+      .exec();
+    const restrictedProducts = getRestrictedProductsFromJwt(req);
+    const productsAreAvailable = products.every(
+      (p) => p.availability && !restrictedProducts?.includes(p._id.toString())
+    );
+    if (!productsAreAvailable)
+      throw new BadRequestError("Some of the products are not available");
 
     const createdOrder = await orderModel.create(data);
 

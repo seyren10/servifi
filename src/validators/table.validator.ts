@@ -2,6 +2,7 @@ import { z } from "zod";
 import { TableStatus } from "../enums/table";
 import { exists } from "./dbValidatorHelpers";
 import Table from "../models/table.model";
+import { isValidObjectId } from "mongoose";
 
 export const createTableSchema = z.object({
   number: z
@@ -19,3 +20,9 @@ export const updateTableSchema = z
     status: z.nativeEnum(TableStatus),
   })
   .partial();
+
+export const generateTableSessionSchema = z.object({
+  restrictedProductIds: z
+    .array(z.string().refine((v) => isValidObjectId(v), "Invalid product id"))
+    .optional(),
+});

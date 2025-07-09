@@ -10,6 +10,7 @@ import {
   updatePromoValidator,
 } from "../validators/promo.validator";
 import productModel from "../models/product.model";
+import { validPromos } from "../utils/promo.helpers";
 
 export async function getPromos(
   req: Request,
@@ -85,14 +86,8 @@ export async function updatePromo(
     if (!success) throw new ValidationError(error);
 
     if (data.restrictedProducts && data.restrictedProducts.length) {
-      const count = await productModel
-        .countDocuments()
-        .where("_id")
-        .in(data.restrictedProducts)
-        .lean()
-        .exec();
-
-      if (count !== data.restrictedProducts.length)
+      const isPromoValid = await validPromos(data.restrictedProducts);
+      if (!isPromoValid)
         throw new BadRequestError("Some of the products doesnt exist");
     }
 

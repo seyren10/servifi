@@ -1,4 +1,4 @@
-import { NextFunction, Request, response, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import {
   categoryCreateSchema,
   moveProductsCategorySchema,
@@ -11,7 +11,6 @@ import {
   ValidationError,
 } from "../utils/AppError";
 import productModel from "../models/product.model";
-import mongoose, { Schema, Types } from "mongoose";
 
 export async function getCategories(
   req: Request,
@@ -19,10 +18,7 @@ export async function getCategories(
   next: NextFunction
 ) {
   try {
-    const categories = await categoryModel
-      .find()
-      .sort({ createdAt: "desc" })
-      .lean();
+    const categories = await categoryModel.find().lean();
 
     res.json(categories);
   } catch (error) {
@@ -84,10 +80,7 @@ export async function updateCategory(
 
     if (!success) throw new ValidationError(error);
 
-    const category = await categoryModel.updateOne(
-      { _id: id },
-      { name: data.name }
-    );
+    const category = await categoryModel.findByIdAndUpdate(id, data);
 
     res.status(204).json();
   } catch (error) {

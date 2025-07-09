@@ -1,6 +1,7 @@
-import { model, Schema } from "mongoose";
+import { CallbackError, model, Schema } from "mongoose";
 import { Table } from "../types/table";
 import { TableStatus } from "../enums/table";
+import orderModel from "./order.model";
 
 const tableSchema = new Schema<Table>(
   {
@@ -30,4 +31,11 @@ const tableSchema = new Schema<Table>(
 
 const Table = model<Table>("Table", tableSchema);
 
+tableSchema.post("deleteOne", async function (doc, next) {
+  try {
+    await orderModel.deleteMany({ table: doc._id });
+  } catch (err) {
+    next(err as CallbackError);
+  }
+});
 export default Table;
