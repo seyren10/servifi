@@ -14,6 +14,7 @@ import authRouter from "./routes/auth.route";
 import "./workers/imageDelete.worker";
 import "./workers/imageUpload.worker";
 import promoRouter from "./routes/promo.route";
+import serviceRouter from "./routes/service.route";
 
 const app = express();
 
@@ -38,6 +39,7 @@ app.use("/api/v1/products", productRouter);
 app.use("/api/v1/tables", tableRouter);
 app.use("/api/v1/orders", orderRouter);
 app.use("/api/v1/promos", promoRouter);
+app.use("/api/v1/services", serviceRouter);
 
 app.all("/{*splat}", (req: Request, res: Response) => {
   res.status(404).send("Page not found");
