@@ -13,10 +13,12 @@ import { ClientRole } from "../enums/roles";
 
 const categoryRouter = Router();
 
-categoryRouter.use(authorize(ClientRole.USER));
-
+categoryRouter.use(authorize(ClientRole.CUSTOMER));
 categoryRouter.get("/", getCategories);
 categoryRouter.get("/:id", getCategory);
+
+categoryRouter.use(authorize(ClientRole.USER));
+
 categoryRouter.get("/:id/products-count", categoryProductsCount);
 categoryRouter.post("/", createCategory);
 categoryRouter.put("/:id", updateCategory);

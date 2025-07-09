@@ -1,0 +1,4 @@
+07/09/25: 
+services:
+ - create crud for services
+ - with realtime notif using IO

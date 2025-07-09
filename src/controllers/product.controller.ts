@@ -7,6 +7,9 @@ import {
 import { ValidationError } from "../utils/AppError";
 import { deleteImageJob } from "../workers/imageDelete.queue";
 import { imageUploadQueue } from "../workers/imageUpload.worker";
+import jwt from "jsonwebtoken";
+import { JwtAuthPayload } from "../types/jwt";
+import { getRestrictedProductsFromJwt } from "../utils/products.helpers";
 
 export async function getProducts(
   req: Request,
@@ -48,8 +51,20 @@ export async function getProductsByCategoryId(
   next: NextFunction
 ) {
   try {
+    const restrictedProducts = getRestrictedProductsFromJwt(req);
+
     const { id } = req.params;
-    const products = await productModel.find({ category: id }).lean();
+    const products = await productModel
+      .find({ category: id })
+      .lean()
+      .transform((products) =>
+        products.map((product) =>
+          restrictedProducts?.includes(product._id.toString())
+            ? { ...product, availability: false }
+            : product
+        )
+      )
+      .exec();
 
     res.json(products);
   } catch (error) {
