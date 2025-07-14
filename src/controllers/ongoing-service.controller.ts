@@ -6,6 +6,7 @@ import {
   updateOngoingServiceSchema,
 } from "../validators/ongoing-service.validator";
 import { getIO } from "../config/socket";
+import { ZodError } from "zod";
 
 export async function getOngoingServices(
   req: Request,
@@ -61,11 +62,29 @@ export async function createOngoingService(
 
     if (!success) throw new ValidationError(error);
 
+    const existingOngoingService = await ongoingServiceModel
+      .countDocuments({
+        service: data.service,
+        table: data.table,
+      })
+      .lean()
+      .exec();
+
+    if (existingOngoingService)
+      throw new ValidationError(
+        new ZodError([
+          {
+            path: ["service"],
+            message: "Ongoing service already exists",
+            code: "custom",
+          },
+        ])
+      );
+
     const ongoingService = await ongoingServiceModel.create(data);
 
     const io = getIO();
 
-    console.log('emit')
     io.emit("ongoing-service-created", {
       message: "New ongoing service created",
     });
