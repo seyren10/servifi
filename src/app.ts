@@ -16,6 +16,7 @@ import "./workers/imageUpload.worker";
 import promoRouter from "./routes/promo.route";
 import serviceRouter from "./routes/service.route";
 import ongoingServiceRouter from "./routes/ongoing-service.route";
+import { reportRouter } from "./routes/report.route";
 
 const app = express();
 
@@ -42,6 +43,7 @@ app.use("/api/v1/orders", orderRouter);
 app.use("/api/v1/promos", promoRouter);
 app.use("/api/v1/services", serviceRouter);
 app.use("/api/v1/ongoing-services", ongoingServiceRouter);
+app.use("/api/v1/reports", reportRouter);
 
 app.all("/{*splat}", (req: Request, res: Response) => {
   res.status(404).send("Page not found");
