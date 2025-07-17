@@ -2,7 +2,7 @@ import config from "./dotenv";
 import logger from "./winston";
 import Redis from "ioredis";
 
-const redis = new Redis(config.redisUrl!, {
+const redis = new Redis(config.redisUrl! + '?family=0', {
   maxRetriesPerRequest: 20,
   enableReadyCheck: true,
 });
