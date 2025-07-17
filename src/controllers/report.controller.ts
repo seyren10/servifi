@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import receiptModel from "../models/receipt.model";
 import { Parser as Json2csvParser } from "json2csv";
 import { addDays, format, parseISO, startOfDay } from "date-fns";
+import { Product } from "../types/product";
 export const getTransactionReport = async (
   req: Request,
   res: Response,
@@ -87,7 +88,7 @@ export const getTransactionReport = async (
         ],
       },
     });
-    
+
     const result = await receiptModel.aggregate(pipeline);
 
     const stats = result[0]?.totals[0] || {
@@ -144,17 +145,18 @@ export const downloadTransactionReport = async (
       receipt.products.forEach((product) => {
         const quantity = product.quantity || 0;
         const productTotal = product.total || 0;
+        const productModel = product.productId as unknown as Product;
 
         totalQuantity += quantity;
         totalProductAmount += quantity * productTotal;
 
         rows.push({
           receiptId: receipt._id.toString(),
-          productName: product.productId?.name || "",
+          productName: productModel.name || "",
           quantity: quantity,
           productTotal: productTotal,
           receiptTotal: quantity * productTotal,
-          createdAt: format(new Date(receipt.createdAt), "yyyy-MM-dd HH:mm:ss"),
+          createdAt: format(new Date(receipt.createdAt!), "yyyy-MM-dd HH:mm:ss"),
         });
       });
     });
