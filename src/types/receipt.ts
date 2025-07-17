@@ -10,4 +10,6 @@ export type Receipt = Document & {
     total: number;
   }[];
   total: number;
+  updatedAt?: string;
+  createdAt?: string;
 };
